@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import urllib.request
+import requests
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY, date2num
 from mpl_finance import candlestick_ohlc, candlestick2_ochl
 import datetime
 from datetime import date
-import json
 
 
 def import_data(ticker, timeseries):
@@ -18,15 +17,13 @@ def import_data(ticker, timeseries):
         # daily指的是每一天的交易数据
         url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=' + ticker + '&apikey=' + '9JQS102QXL5THDIL' + '&outputsize=compact&datatype=json'
         name = 'Time Series (Daily)'
-    fp = urllib.request.urlopen(url)
-    mybytes = fp.read()
-    js = mybytes.decode("utf8")
-    fp.close()
-    parsed_data = json.loads(js)  # 读取json数据并且将json转化成字典
-    ps = parsed_data[name]
-    df = pd.DataFrame.from_dict(ps, orient='index')
-    df.columns = ['Open', 'High', 'Low', 'Close', 'Volume']  # 将每一列的名字领名
-    return df
+
+    r = requests.get(url, stream=True)
+    with open("daily_AAPL.csv", "wb") as csv_file:
+        for line in r.iter_lines():
+            csv_file.write(line)
+
+
 
 
 def pandas_candlestick_ohlc(dat, ticker, lag="day", label_date=None, x1=0, x2=0, apple=None):
